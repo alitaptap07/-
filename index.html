@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monthsarry Card</title>
+  <style>
+    :root {
+      --pink-1: #ffd7e8;
+      --pink-2: #ffb7d5;
+      --pink-3: #ff7fb3;
+      --pink-4: #ff4f96;
+      --red: #ff4d6d;
+      --white: #fffafc;
+      --black: #141414;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+      --radius: 28px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: radial-gradient(circle at top, #ffe7f1 0%, #ffc7df 40%, #111 100%);
+      color: var(--black);
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255,255,255,0.35), transparent 22%),
+        radial-gradient(circle at 85% 15%, rgba(255,255,255,0.20), transparent 18%),
+        radial-gradient(circle at 80% 80%, rgba(255,183,213,0.22), transparent 20%),
+        radial-gradient(circle at 10% 85%, rgba(255,255,255,0.15), transparent 20%);
+      filter: blur(6px);
+      z-index: 0;
+    }
+
+    .scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      isolation: isolate;
+    }
+
+    .floaters {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .floater {
+      position: absolute;
+      font-size: clamp(24px, 3vw, 44px);
+      opacity: 0.9;
+      animation: drift linear infinite;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.14));
+      user-select: none;
+    }
+
+    @keyframes drift {
+      0% { transform: translateY(110vh) translateX(0) rotate(0deg) scale(0.8); }
+      50% { transform: translateY(45vh) translateX(18px) rotate(12deg) scale(1); }
+      100% { transform: translateY(-20vh) translateX(-14px) rotate(-10deg) scale(1.08); }
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      transform: scale(1.04);
+      pointer-events: none;
+      transition: opacity 0.55s ease, transform 0.55s ease;
+      z-index: 2;
+    }
+
+    .screen.active {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .card {
+      width: min(92vw, 820px);
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: rgba(255, 250, 252, 0.9);
+      border: 2px solid rgba(255,255,255,0.7);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(22px, 4vw, 42px);
+      position: relative;
+      backdrop-filter: blur(12px);
+    }
+
+    .card::-webkit-scrollbar { width: 10px; }
+    .card::-webkit-scrollbar-thumb {
+      background: rgba(255, 79, 150, 0.45);
+      border-radius: 999px;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border-radius: calc(var(--radius) - 10px);
+      border: 1px dashed rgba(20,20,20,0.16);
+      pointer-events: none;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    .title {
+      font-size: clamp(2rem, 5vw, 3.7rem);
+      line-height: 1.05;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: clamp(1rem, 2.1vw, 1.2rem);
+      color: rgba(20,20,20,0.78);
+      margin-bottom: 26px;
+      line-height: 1.55;
+    }
+
+    .password-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input[type="password"] {
+      flex: 1 1 280px;
+      min-height: 54px;
+      border-radius: 18px;
+      border: 1.8px solid rgba(20,20,20,0.14);
+      padding: 14px 16px;
+      font-size: 1rem;
+      background: rgba(255,255,255,0.95);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus {
+      border-color: var(--pink-4);
+      box-shadow: 0 0 0 4px rgba(255, 79, 150, 0.14);
+    }
+
+    button {
+      min-height: 52px;
+      border: none;
+      border-radius: 16px;
+      padding: 14px 20px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-2px); }
+    button:active { transform: translateY(1px) scale(0.98); }
+
+    .primary {
+      background: linear-gradient(135deg, var(--pink-4), #ff77ac);
+      color: white;
+      box-shadow: 0 12px 24px rgba(255, 79, 150, 0.28);
+    }
+
+    .ghost {
+      background: rgba(255,255,255,0.72);
+      color: var(--black);
+      border: 1px solid rgba(20,20,20,0.1);
+    }
+
+    .status {
+      min-height: 28px;
+      margin-top: 14px;
+      font-weight: 700;
+      color: var(--pink-4);
+    }
+
+    .choice-zone {
+      position: relative;
+      min-height: 210px;
+      border-radius: 24px;
+      padding: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,215,232,0.52));
+      border: 1px solid rgba(20,20,20,0.08);
+      overflow: hidden;
+    }
+
+    .choice-buttons {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      min-height: 160px;
+      position: relative;
+    }
+
+    .yes-btn {
+      min-width: 150px;
+      font-size: 1.08rem;
+    }
+
+    .no-btn {
+      position: absolute;
+      min-width: 130px;
+    }
+
+    .wiggle { animation: wiggle 0.45s ease; }
+    .flash { animation: flash 0.45s ease; }
+
+    @keyframes wiggle {
+      0%, 100% { transform: translateX(0); }
+      15% { transform: translateX(-8px) rotate(-2deg); }
+      30% { transform: translateX(8px) rotate(2deg); }
+      45% { transform: translateX(-6px) rotate(-1deg); }
+      60% { transform: translateX(6px) rotate(1deg); }
+      75% { transform: translateX(-3px); }
+    }
+
+    @keyframes flash {
+      0% { box-shadow: 0 0 0 0 rgba(255, 79, 150, 0.45); }
+      100% { box-shadow: 0 0 0 18px rgba(255, 79, 150, 0); }
+    }
+
+    .pick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .pick {
+      min-height: 72px;
+      background: rgba(255,255,255,0.82);
+      border: 2px solid rgba(20,20,20,0.08);
+      color: var(--black);
+      border-radius: 20px;
+    }
+
+    .pick.selected {
+      background: linear-gradient(135deg, rgba(255,79,150,0.16), rgba(255,255,255,0.95));
+      border-color: var(--pink-4);
+      box-shadow: 0 10px 24px rgba(255, 79, 150, 0.14);
+    }
+
+    .continue-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .hidden { display: none !important; }
+
+    .tap-anywhere {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .burst {
+      font-size: clamp(3rem, 9vw, 5.6rem);
+      font-weight: 900;
+      color: var(--black);
+      text-shadow: 0 10px 28px rgba(255,255,255,0.45);
+      animation: pulse 1.25s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.045); }
+    }
+
+    .center { text-align: center; }
+
+    .envelope-stage {
+      display: grid;
+      place-items: center;
+      gap: 20px;
+      min-height: 380px;
+      text-align: center;
+    }
+
+    .envelope {
+      position: relative;
+      width: min(76vw, 360px);
+      aspect-ratio: 1.32 / 1;
+      cursor: pointer;
+      filter: drop-shadow(0 20px 28px rgba(0,0,0,0.18));
+      transition: transform 0.25s ease;
+    }
+
+    .envelope:hover { transform: translateY(-6px) scale(1.02); }
+
+    .env-body, .env-flap, .env-left, .env-right, .env-paper {
+      position: absolute;
+    }
+
+    .env-body {
+      inset: 25% 0 0;
+      background: linear-gradient(180deg, #ffd3e7 0%, #ffb5d4 100%);
+      border-radius: 0 0 22px 22px;
+      border: 2px solid rgba(20,20,20,0.08);
+      overflow: hidden;
+    }
+
+    .env-left, .env-right {
+      top: 25%;
+      width: 50%;
+      height: 75%;
+      background: linear-gradient(180deg, #ffc1dd, #ff9ec6);
+      border: 2px solid rgba(20,20,20,0.06);
+    }
+
+    .env-left {
+      left: 0;
+      clip-path: polygon(0 0, 100% 50%, 0 100%);
+      border-right: none;
+    }
+
+    .env-right {
+      right: 0;
+      clip-path: polygon(100% 0, 0 50%, 100% 100%);
+      border-left: none;
+    }
+
+    .env-flap {
+      inset: 0 0 auto;
+      height: 55%;
+      background: linear-gradient(180deg, #ffe8f2, #ffc6de);
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      transform-origin: top center;
+      border: 2px solid rgba(20,20,20,0.06);
+    }
+
+    .env-paper {
+      left: 10%;
+      right: 10%;
+      top: 30%;
+      height: 58%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,241,247,1));
+      border-radius: 16px;
+      border: 1px solid rgba(20,20,20,0.08);
+      box-shadow: 0 12px 20px rgba(0,0,0,0.10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      font-weight: 700;
+      color: rgba(20,20,20,0.68);
+      transform: translateY(18px);
+    }
+
+    .env-heart {
+      position: absolute;
+      left: 50%;
+      top: 58%;
+      transform: translate(-50%, -50%);
+      width: 64px;
+      height: 64px;
+      background: var(--pink-4);
+      clip-path: path('M32 57 C8 42 0 26 0 15 C0 5 8 0 16 0 C23 0 29 4 32 10 C35 4 41 0 48 0 C56 0 64 5 64 15 C64 26 56 42 32 57 Z');
+      filter: drop-shadow(0 8px 14px rgba(255,79,150,0.3));
+    }
+
+    .open-anim .env-flap { animation: openFlap 1.05s ease forwards; }
+    .open-anim .env-paper { animation: liftPaper 1.6s 0.35s ease forwards; }
+
+    @keyframes openFlap {
+      from { transform: rotateX(0deg); }
+      to { transform: rotateX(180deg); }
+    }
+
+    @keyframes liftPaper {
+      from { transform: translateY(18px); }
+      to { transform: translateY(-96px); }
+    }
+
+    .letter-shell {
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,244,249,0.98));
+      border-radius: 24px;
+      padding: clamp(20px, 4vw, 34px);
+      border: 1px solid rgba(20,20,20,0.08);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8), 0 18px 36px rgba(0,0,0,0.09);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .letter-shell::before {
+      content: "";
+      position: absolute;
+      left: 26px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: rgba(255,79,150,0.18);
+    }
+
+    .paper-title, .paper-subtitle, .paper-body, .paper-sign {
+      position: relative;
+      z-index: 1;
+      outline: none;
+      margin-left: 18px;
+    }
+
+    .paper-title {
+      font-size: clamp(1.7rem, 4vw, 2.8rem);
+      font-weight: 800;
+      margin-bottom: 6px;
+      min-height: 1.2em;
+    }
+
+    .paper-subtitle {
+      color: rgba(20,20,20,0.62);
+      margin-bottom: 18px;
+      min-height: 1.2em;
+    }
+
+    .paper-body {
+      min-height: 260px;
+      font-size: 1.02rem;
+      line-height: 1.9;
+      white-space: pre-wrap;
+    }
+
+    .paper-sign {
+      margin-top: 24px;
+      font-weight: 700;
+      min-height: 1.2em;
+    }
+
+    [contenteditable="true"]:empty::before {
+      content: attr(data-placeholder);
+      color: rgba(20,20,20,0.35);
+    }
+
+    .sparkles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .sparkles span {
+      position: absolute;
+      font-size: clamp(18px, 2vw, 28px);
+      animation: twinkle 1.5s ease-in-out infinite;
+      opacity: 0.92;
+    }
+
+    .sparkles span:nth-child(2) { left: 14%; top: 20%; animation-delay: 0.2s; }
+    .sparkles span:nth-child(3) { left: 80%; top: 16%; animation-delay: 0.6s; }
+    .sparkles span:nth-child(4) { left: 10%; top: 75%; animation-delay: 0.9s; }
+    .sparkles span:nth-child(5) { left: 84%; top: 80%; animation-delay: 0.3s; }
+    .sparkles span:nth-child(6) { left: 50%; top: 8%; animation-delay: 1s; }
+
+    @keyframes twinkle {
+      0%, 100% { transform: scale(0.85) rotate(0deg); opacity: 0.45; }
+      50% { transform: scale(1.15) rotate(10deg); opacity: 1; }
+    }
+
+    @media (max-width: 640px) {
+      .card { padding: 22px 18px; }
+      .choice-buttons { min-height: 200px; }
+      .yes-btn, .no-btn { min-width: 122px; }
+      .paper-body { min-height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="floaters" id="floaters"></div>
+
+  <div class="scene">
+    <section class="screen active" id="screen-password">
+      <div class="card">
+        <div class="sparkles"><span>🩷</span><span>🤍</span><span>❤️</span><span>🩷</span><span>🤍</span><span>❤️</span></div>
+        <h1 class="title">Enter Password</h1>
+        <p class="subtitle">Clue: <strong>Our Anniversary Date</strong></p>
+        <div class="password-row">
+          <input id="password-input" type="password" placeholder="Type the date here" autocomplete="off" />
+          <button class="primary" id="password-submit" type="button">Unlock</button>
+        </div>
+        <div class="status" id="password-status"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-love">
+      <div class="card" id="love-card">
+        <h2 class="title">Do you Love Me?</h2>
+        <div class="choice-zone" id="love-zone">
+          <div class="choice-buttons">
+            <button class="primary yes-btn" id="yes-btn" type="button">YES</button>
+            <button class="ghost no-btn" id="no-btn" type="button">NO</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-sure">
+      <div class="card">
+        <h2 class="title">ARE YOU SURE?</h2>
+        <div class="pick-grid" id="pick-grid">
+          <button class="pick" data-pick="Yes" type="button">Yes</button>
+          <button class="pick" data-pick="Of Course" type="button">Of Course</button>
+          <button class="pick" data-pick="Certainly" type="button">Certainly</button>
+          <button class="pick" data-pick="Opo" type="button">Opo</button>
+        </div>
+        <div class="continue-wrap">
+          <button class="primary hidden" id="pick-next" type="button">Continue</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-dapat">
+      <div class="tap-anywhere" id="dapat-tap">
+        <div class="burst">DAPAT LANG!</div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-envelope">
+      <div class="card center">
+        <div class="envelope-stage">
+          <div class="envelope" id="envelope-button" aria-label="Open envelope" role="button" tabindex="0">
+            <div class="env-paper"></div>
+            <div class="env-body"></div>
+            <div class="env-left"></div>
+            <div class="env-right"></div>
+            <div class="env-flap"></div>
+            <div class="env-heart"></div>
+          </div>
+          <div>
+            <h2 class="title" style="margin-bottom: 8px;">EXCLUSIVELY FOR YOU.</h2>
+            <p class="subtitle" style="margin-bottom: 0;">Tap the envelope to open.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-open">
+      <div class="card center">
+        <div class="envelope-stage">
+          <div class="envelope open-anim" aria-hidden="true">
+            <div class="env-paper"></div>
+            <div class="env-body"></div>
+            <div class="env-left"></div>
+            <div class="env-right"></div>
+            <div class="env-flap"></div>
+            <div class="env-heart"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-letter">
+      <div class="card">
+        <div class="letter-shell">
+          <div class="paper-title" id="letter-title" contenteditable="true" data-placeholder="To my new favorite person,"></div>
+          <div class="paper-subtitle" id="letter-subtitle" contenteditable="true" data-placeholder="Hello, palangga!"></div>
+          <div class="paper-body" id="letter-body" contenteditable="true" data-placeholder="Write your letter here..."></div>
+          <div class="paper-sign" id="letter-sign" contenteditable="true" data-placeholder="With Love,"></div>
+          <div class="paper-sign" id="letter-sign" contenteditable="true" data-placeholder="aly💕"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <audio id="bg-music" preload="auto"></audio>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const byId = (id) => document.getElementById(id);
+      const on = (element, eventName, handler, options) => {
+        if (element) element.addEventListener(eventName, handler, options);
+      };
+
+      const screens = {
+        password: byId('screen-password'),
+        love: byId('screen-love'),
+        sure: byId('screen-sure'),
+        dapat: byId('screen-dapat'),
+        envelope: byId('screen-envelope'),
+        open: byId('screen-open'),
+        letter: byId('screen-letter')
+      };
+
+      const acceptedPasswords = new Set([
+        '03/22/2026',
+        '03-22-2026',
+        'march 22, 2026'
+      ]);
+
+      const passwordInput = byId('password-input');
+      const passwordSubmit = byId('password-submit');
+      const passwordStatus = byId('password-status');
+
+      const yesBtn = byId('yes-btn');
+      const noBtn = byId('no-btn');
+      const loveZone = byId('love-zone');
+      const loveCard = byId('love-card');
+
+      const pickButtons = Array.from(document.querySelectorAll('.pick'));
+      const pickNext = byId('pick-next');
+      const dapatTap = byId('dapat-tap');
+      const envelopeButton = byId('envelope-button');
+
+      const titleField = byId('letter-title');
+      const subtitleField = byId('letter-subtitle');
+      const bodyField = byId('letter-body');
+      const signField = byId('letter-sign');
+
+      const audio = byId('bg-music');
+      const storageKey = 'monthsarry-card-content-v2';
+
+      function runSelfTests() {
+        const requiredIds = [
+          'screen-password', 'screen-love', 'screen-sure', 'screen-dapat', 'screen-envelope', 'screen-open', 'screen-letter',
+          'password-input', 'password-submit', 'password-status', 'yes-btn', 'no-btn', 'love-zone', 'love-card',
+          'pick-next', 'dapat-tap', 'envelope-button', 'letter-title', 'letter-subtitle', 'letter-body', 'letter-sign', 'bg-music'
+        ];
+
+        const missing = requiredIds.filter((id) => !byId(id));
+        if (missing.length) {
+          console.error('Missing required elements:', missing);
+        }
+
+        console.assert(normalizePassword('  March   22, 2026 ') === 'march 22, 2026', 'Password normalization test failed');
+        console.assert(acceptedPasswords.has(normalizePassword('March 22, 2026')), 'Accepted password set should allow normalized long date');
+        console.assert(pickButtons.length === 4, 'Expected exactly 4 confirmation buttons');
+      }
+
+      function showScreen(name) {
+        Object.values(screens).forEach((screen) => {
+          if (screen) screen.classList.remove('active');
+        });
+        if (screens[name]) screens[name].classList.add('active');
+      }
+
+      function normalizePassword(value) {
+        return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+      }
+
+      function tryUnlock() {
+        if (!passwordInput || !passwordStatus) return;
+        const value = passwordInput.value.trim();
+        const normalized = normalizePassword(value);
+        if (acceptedPasswords.has(value) || acceptedPasswords.has(normalized)) {
+          passwordStatus.textContent = 'Unlocked 💗';
+          setTimeout(() => showScreen('love'), 400);
+        } else {
+          passwordStatus.textContent = 'Oops... try the anniversary date again.';
+          passwordInput.focus();
+        }
+      }
+
+      function moveNoButton() {
+        if (!loveZone || !noBtn || !loveCard) return;
+        const zoneRect = loveZone.getBoundingClientRect();
+        const btnRect = noBtn.getBoundingClientRect();
+        const maxX = Math.max(20, zoneRect.width - btnRect.width - 20);
+        const maxY = Math.max(20, zoneRect.height - btnRect.height - 20);
+        const x = Math.random() * maxX;
+        const y = Math.random() * maxY;
+        noBtn.style.left = `${x}px`;
+        noBtn.style.top = `${y}px`;
+        loveCard.classList.remove('wiggle');
+        loveZone.classList.remove('flash');
+        void loveCard.offsetWidth;
+        loveCard.classList.add('wiggle');
+        loveZone.classList.add('flash');
+      }
+
+      const selectedPicks = new Set();
+
+      function renderPickState() {
+        pickButtons.forEach((btn) => {
+          btn.classList.toggle('selected', selectedPicks.has(btn.dataset.pick));
+        });
+        if (pickNext) pickNext.classList.toggle('hidden', selectedPicks.size !== pickButtons.length);
+      }
+
+      function saveLetter() {
+        if (!titleField || !subtitleField || !bodyField || !signField) return;
+        const data = {
+          title: titleField.innerHTML,
+          subtitle: subtitleField.innerHTML,
+          body: bodyField.innerHTML,
+          sign: signField.innerHTML
+        };
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+        } catch (err) {
+          console.warn('Could not save content locally.', err);
+        }
+      }
+
+      function loadLetter() {
+        if (!titleField || !subtitleField || !bodyField || !signField) return;
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (!raw) return;
+          const data = JSON.parse(raw);
+          titleField.innerHTML = data.title || '';
+          subtitleField.innerHTML = data.subtitle || '';
+          bodyField.innerHTML = data.body || '';
+          signField.innerHTML = data.sign || '';
+        } catch (err) {
+          console.warn('Could not load saved content.', err);
+        }
+      }
+
+      async function attemptAudioPlay() {
+        if (!audio) return false;
+        try {
+          audio.loop = true;
+          await audio.play();
+          return true;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      async function tryPlayDefaultSong() {
+        if (!audio) return;
+        audio.src = 'nahanap-kita.mp3';
+        audio.load();
+        await attemptAudioPlay();
+      }
+
+      function createFloaters() {
+        const floaters = byId('floaters');
+        if (!floaters) return;
+        const items = ['❤️', '🩷', '🤍'];
+        for (let i = 0; i < 20; i += 1) {
+          const span = document.createElement('span');
+          span.className = 'floater';
+          span.textContent = items[i % items.length];
+          span.style.left = `${Math.random() * 100}vw`;
+          span.style.animationDuration = `${10 + Math.random() * 10}s`;
+          span.style.animationDelay = `${-Math.random() * 16}s`;
+          span.style.opacity = `${0.55 + Math.random() * 0.45}`;
+          floaters.appendChild(span);
+        }
+      }
+
+      on(passwordSubmit, 'click', tryUnlock);
+      on(passwordInput, 'keydown', (event) => {
+        if (event.key === 'Enter') tryUnlock();
+      });
+
+      on(noBtn, 'mouseenter', moveNoButton);
+      on(noBtn, 'click', (event) => {
+        event.preventDefault();
+        moveNoButton();
+      });
+      on(noBtn, 'touchstart', (event) => {
+        event.preventDefault();
+        moveNoButton();
+      }, { passive: false });
+
+      on(yesBtn, 'click', () => {
+        showScreen('sure');
+      });
+
+      pickButtons.forEach((btn) => {
+        on(btn, 'click', () => {
+          selectedPicks.add(btn.dataset.pick);
+          renderPickState();
+        });
+      });
+
+      on(pickNext, 'click', () => showScreen('dapat'));
+      on(dapatTap, 'click', () => showScreen('envelope'));
+
+      on(envelopeButton, 'click', () => {
+        tryPlayDefaultSong();
+        showScreen('open');
+        setTimeout(() => showScreen('letter'), 2050);
+      });
+      on(envelopeButton, 'keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          envelopeButton.click();
+        }
+      });
+
+      [titleField, subtitleField, bodyField, signField].forEach((field) => {
+        on(field, 'input', saveLetter);
+      });
+
+      loadLetter();
+      createFloaters();
+      renderPickState();
+      moveNoButton();
+      runSelfTests();
+    });
+  </script>
+</body>
+</html>
